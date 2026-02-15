@@ -568,6 +568,8 @@ graph TB
     style CF fill:#8c4fff
 ```
 
+**Detailed Architecture Diagram**: [View Final AWS Architecture (High Resolution)](file:///C:/Users/nehaj/Desktop/Desktop%20Files/1.Rishabh/Academic/College/AWS%202026/CodeLens%20AI%20Folder/final_aws_architecture_hires.png)
+
 ## 4. Data Flow
 
 ### 4.1 Project Upload and Analysis Flow
