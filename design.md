@@ -470,105 +470,108 @@ The platform operates entirely on uploaded files without GitHub integration, mak
 
 ## 3. Architecture Diagram
 
+**Final Architecture Diagram**: [View High Resolution PNG](file:///C:/Users/nehaj/Desktop/Desktop%20Files/1.Rishabh/Academic/College/AWS%202026/CodeLens%20AI%20Folder/final_aws_architecture_hires.png)
+
 ```mermaid
 graph TB
     subgraph "User Layer"
-        User[User - Web Browser]
+        User[Bharat Developers<br/>Tier 2/3 Cities]
     end
     
-    subgraph "CDN & Frontend"
+    subgraph "Frontend Layer"
         CF[CloudFront CDN]
-        S3Web[S3 - Static Website]
+        S3Web[S3 Static Website]
     end
     
-    subgraph "API Layer"
-        APIGW[API Gateway]
-        Cognito[Amazon Cognito]
+    subgraph "API & Auth Layer"
+        APIGW[API Gateway<br/>REST API]
+        Cognito[Cognito<br/>User Auth]
     end
     
-    subgraph "Processing Layer"
-        SF[Step Functions Pipeline]
-        L1[Lambda: Upload Validator]
-        L2[Lambda: Code Parser]
-        L3[Lambda: Architecture Visualizer]
-        L4[Lambda: Execution Simulator]
-        L5[Lambda: Skill Analyzer]
-        L6[Lambda: Bedrock Orchestrator]
-        L7[Lambda: Health Scorer]
-        L8[Lambda: Learning Path Generator]
-        L9[Lambda: Interview Preparer]
-        L10[Lambda: Refactor Advisor]
+    subgraph "Upload Storage"
+        S3Upload[S3 Project Uploads<br/>Max 50MB]
+    end
+    
+    subgraph "Processing Pipeline - Step Functions"
+        SF[Step Functions<br/>Orchestrator]
+        
+        subgraph "Lambda Functions"
+            L1[Upload Handler]
+            L2[Code Parser]
+            L3[AST Generator]
+            L4[Code Chunker]
+            L5[Bedrock Invoker]
+            L6[Visualization Generator]
+            L7[Health Score Calculator]
+            L8[Roadmap Generator]
+        end
     end
     
     subgraph "AI Layer"
-        Bedrock[Amazon Bedrock - Claude 3.5 Sonnet]
+        Bedrock[Amazon Bedrock<br/>Claude 3.5 Sonnet]
     end
     
-    subgraph "Storage Layer"
-        S3Upload[S3 - Uploaded Projects]
-        S3Artifacts[S3 - Generated Artifacts]
-        DDB[DynamoDB Tables:<br/>Users, Projects, Metadata,<br/>Skill Gaps, Learning Paths,<br/>Bedrock Cache]
+    subgraph "Data Storage"
+        DDB[DynamoDB<br/>6 Tables:<br/>Users, Projects, Metadata,<br/>Skill Gaps, Learning Paths,<br/>Bedrock Cache]
+        S3Cache[S3 Results Cache]
+        OS[OpenSearch<br/>Code Index<br/>Optional v2]
     end
     
-    subgraph "Monitoring & Security"
-        CW[CloudWatch Logs & Metrics]
-        WAF[AWS WAF]
-        SM[Secrets Manager]
+    subgraph "Monitoring"
+        CW[CloudWatch<br/>Logs & Metrics]
     end
     
     User -->|HTTPS| CF
-    CF -->|Static Assets| S3Web
-    CF -->|API Requests| APIGW
-    APIGW -->|Authenticate| Cognito
-    APIGW -->|Invoke| L1
-    APIGW -->|Invoke| L4
-    APIGW -->|Invoke| L9
+    CF --> S3Web
+    CF --> APIGW
+    APIGW --> Cognito
+    APIGW --> L1
+    L1 --> S3Upload
+    S3Upload -->|Trigger| SF
     
-    L1 -->|Trigger| SF
-    SF -->|Orchestrate| L2
-    SF -->|Orchestrate| L3
-    SF -->|Orchestrate| L5
-    SF -->|Orchestrate| L7
-    SF -->|Orchestrate| L8
-    SF -->|Orchestrate| L10
+    SF --> L2
+    L2 --> L3
+    L3 --> L4
+    L4 --> L5
     
-    L2 -->|Read/Write| S3Upload
-    L3 -->|Write| S3Artifacts
-    L6 -->|Invoke| Bedrock
-    L8 -->|Use| L6
-    L9 -->|Use| L6
+    SF -.->|Parallel| L6
+    SF -.->|Parallel| L7
+    SF -.->|Parallel| L8
     
-    L1 -.->|Log| CW
-    L2 -.->|Log| CW
-    L3 -.->|Log| CW
-    L4 -.->|Log| CW
-    L5 -.->|Log| CW
-    L6 -.->|Log| CW
-    L7 -.->|Log| CW
-    L8 -.->|Log| CW
-    L9 -.->|Log| CW
-    L10 -.->|Log| CW
+    L5 --> Bedrock
+    L6 --> Bedrock
+    L7 --> Bedrock
+    L8 --> Bedrock
     
-    L1 -->|Store| DDB
-    L2 -->|Store| DDB
-    L3 -->|Store| DDB
-    L5 -->|Store| DDB
-    L6 -->|Cache| DDB
-    L7 -->|Store| DDB
-    L8 -->|Store| DDB
+    L5 --> DDB
+    L6 --> DDB
+    L7 --> DDB
+    L8 --> DDB
     
-    WAF -->|Protect| APIGW
-    SM -->|Secrets| L6
+    L5 --> S3Cache
+    L6 --> S3Cache
     
-    style User fill:#e1f5ff
-    style Bedrock fill:#ff9900
-    style DDB fill:#4053d6
-    style S3Upload fill:#569a31
-    style S3Artifacts fill:#569a31
-    style CF fill:#8c4fff
+    L2 -.->|Optional v2| OS
+    
+    SF --> CW
+    L1 --> CW
+    L2 --> CW
+    L5 --> CW
+    
+    DDB --> APIGW
+    S3Cache --> APIGW
+    APIGW --> CF
+    CF --> User
+    
+    style User fill:#90EE90
+    style Bedrock fill:#008B8B
+    style DDB fill:#4169E1
+    style S3Upload fill:#228B22
+    style S3Cache fill:#228B22
+    style S3Web fill:#228B22
+    style CF fill:#FF8C00
+    style SF fill:#800080
 ```
-
-**Detailed Architecture Diagram**: [View Final AWS Architecture (High Resolution)](file:///C:/Users/nehaj/Desktop/Desktop%20Files/1.Rishabh/Academic/College/AWS%202026/CodeLens%20AI%20Folder/final_aws_architecture_hires.png)
 
 ## 4. Data Flow
 
